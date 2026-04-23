@@ -1,0 +1,18 @@
+stardis_config_version: 1.0
+atom_data: kurucz_cd23_chianti_H_He.h5
+input_model:
+    type: marcs
+    fname: sun.mod
+    final_atomic_number: 30
+opacity:
+    file:
+        Hminus_bf: h_minus_cross_section_wbr.dat
+    bf:
+        H_I: {}
+    ff:
+        H_I: {}
+    disable_electron_scattering: False
+    line:
+        disable: True
+        broadening: [radiation, linear_stark, quadratic_stark, van_der_waals]
+no_of_thetas: 20
