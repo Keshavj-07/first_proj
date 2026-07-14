@@ -14,22 +14,25 @@ def convert_wavelength_air2vacuum(wavelength_air):
     float
         Vacuum wavelength in Angstroms
     """
-    sigma2 = (1e4/wavelength_air)**2.
-    fact = 1.0 + 5.792105e-2/(238.0185 - sigma2) + 1.67917e-3/(57.362 - sigma2)
+    sigma2 = (1e4 / wavelength_air) ** 2.0
+    fact = 1.0 + 5.792105e-2 / (238.0185 - sigma2) + 1.67917e-3 / (57.362 - sigma2)
 
     return wavelength_air * fact
 
 
-def bass_compare(obs_x, obs_y, sim_x, sim_y, x_min=6061, x_max=7061):
+def bass_compare(obs_x, obs_y, sim_x, sim_y):
     """
     Compare the observed solar spectrum with the STARDIS simulation
     Parameters
     -----------
-    wavelength: array-like
+    obs_x: array-like
+        Wavelengths of the observed spectrum in Angstroms
+    obs_y: array-like
+        Flux densities of the normalized observed spectrum
+    sim_x: array-like
         Wavelengths of the stardis solar spectrum in Angstroms
-    flux: array-like
+    sim_y: array-like
         Flux densities of the stardis solar spectrum in erg/s/cm^2/Angstrom
-
     Returns
     --------
     None
@@ -38,45 +41,50 @@ def bass_compare(obs_x, obs_y, sim_x, sim_y, x_min=6061, x_max=7061):
     plt.plot(
         obs_x,
         obs_y,
-        label='Observed Solar Spectrum',
-        color='black',
+        label="Observed Solar Spectrum",
+        color="black",
         alpha=0.6,
     )
-    plt.xlim((x_min, x_max))
+    plt.plot(
+        sim_x,
+        sim_y,
+        label="STARDIS Simulation",
+        color="tab:blue",
+    )
     plt.title("Observation vs STARDIS Solar Spectrum")
     plt.xlabel(r"Wavelength [$\AA$]")
     plt.ylabel(r"Flux density [erg/s/cm$^2$/$\AA$]")
     plt.tight_layout()
-
-    plt.plot(sim_x, sim_y, label='STARDIS Simulation')
     # plt.vlines(6564.6, ymin=0, ymax=10000, color='red', label='H-alpha line')
     # plt.vlines(6867.4, ymin=0, ymax=10000, color='red', label='O2 B line')
+    # plt.vlines(6282.6, ymin=0, ymax=10000, color='red', label='O2 A line')
     plt.legend()
     plt.show()
 
 
-def continuum_visualizer(x1, y1, x2, y2, x_min=6061, x_max=7061):
+def continuum_visualizer(x1, y1, x2, y2):
     """
     Visualize the continuum of the STARDIS simulation
     Parameters
     -----------
-    wavelength: array-like
+    x1: array-like
         Wavelengths of the stardis solar spectrum in Angstroms
-    flux: array-like
+    y1: array-like
         Flux densities of the stardis solar spectrum in erg/s/cm^2/Angstrom
-
+    x2: array-like
+        Wavelengths of the stardis continuum in Angstroms
+    y2: array-like
+        Value for the continuum
     Returns
     --------
     None
     """
     plt.figure(figsize=(10, 6))
-    plt.plot(x2, y2, label='STARDIS Simulation')
-    plt.xlim((x_min, x_max))
+    plt.plot(x1, y1, label="STARDIS Simulation", color="tab:blue")
+    plt.plot(x2, y2, label="Continuum", color="red")
     plt.title("STARDIS Solar Spectrum Continuum")
     plt.xlabel(r"Wavelength [$\AA$]")
     plt.ylabel(r"Flux density [erg/s/cm$^2$/$\AA$]")
     plt.tight_layout()
-
-    plt.plot(x1, y1, label='Continuum', color='red')
     plt.legend()
     plt.show()
