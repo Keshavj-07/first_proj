@@ -3,7 +3,8 @@ atom_data: ../data/vald_extract_solar.h5
 input_model:
     type: marcs
     fname: ../data/sun.mod
-    final_atomic_number: 30
+    final_atomic_number: 92
+    composition_source: "asplund_2020"
 opacity:
     file:
         Hminus_bf: ../data/h_minus_cross_section_wbr.dat
@@ -18,4 +19,7 @@ opacity:
         vald_linelist:
             use_linelist: True
             shortlist: True
+#        include_molecules: True
 no_of_thetas: 20
+result_options:
+    return_plasma: True 

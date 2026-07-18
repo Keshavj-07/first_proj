@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import scipy.ndimage as nd
 
 
 def convert_wavelength_air2vacuum(wavelength_air):
@@ -14,13 +15,13 @@ def convert_wavelength_air2vacuum(wavelength_air):
     float
         Vacuum wavelength in Angstroms
     """
-    sigma2 = (1e4 / wavelength_air) ** 2.0
-    fact = 1.0 + 5.792105e-2 / (238.0185 - sigma2) + 1.67917e-3 / (57.362 - sigma2)
+    sigma = (1e4 / wavelength_air) ** 2.0
+    fact = 1.0 + 5.7921e-2 / (238.0185 - sigma) + 1.67917e-3 / (57.362 - sigma)
 
     return wavelength_air * fact
 
 
-def bass_compare(obs_x, obs_y, sim_x, sim_y):
+def bass_compare(obs_x, obs_y, sim_x, sim_y, start=6061, end=7061):
     """
     Compare the observed solar spectrum with the STARDIS simulation
     Parameters
@@ -33,6 +34,10 @@ def bass_compare(obs_x, obs_y, sim_x, sim_y):
         Wavelengths of the stardis solar spectrum in Angstroms
     sim_y: array-like
         Flux densities of the stardis solar spectrum in erg/s/cm^2/Angstrom
+    start: Float
+        Starting wavelength value
+    end: Float
+        Ending wavelength value
     Returns
     --------
     None
@@ -51,7 +56,8 @@ def bass_compare(obs_x, obs_y, sim_x, sim_y):
         label="STARDIS Simulation",
         color="tab:blue",
     )
-    plt.title("Observation vs STARDIS Solar Spectrum")
+    plt.xlim(start, end)
+    plt.title("Stardis Solar Spectrum")
     plt.xlabel(r"Wavelength [$\AA$]")
     plt.ylabel(r"Flux density [erg/s/cm$^2$/$\AA$]")
     plt.tight_layout()
@@ -88,3 +94,34 @@ def continuum_visualizer(x1, y1, x2, y2):
     plt.tight_layout()
     plt.legend()
     plt.show()
+
+
+def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
+    """
+    Visualize the graph of a STARDIS simulation
+    Parameters
+    -----------
+    obs_x: array-like
+        Wavelengths of the observed spectrum in Angstroms
+    obs_y: array-like
+        Flux densities of the normalized observed spectrum
+    sim: array-like
+        Stardis solar spectrum simulation
+    sim_nolines: array-like
+        Stardis solar spectrum simulation without lines
+    factor:
+        Factor for normalizing spectrum
+    Returns
+    --------
+    None
+    """
+    y_norm = sim.spectrum_lambda / sim_nolines.spectrum_lambda * factor
+    continuum_visualizer(
+        sim.lambdas,
+        sim.spectrum_lambda,
+        sim_nolines.lambdas,
+        sim_nolines.spectrum_lambda,
+    )
+    convolved_flux = nd.gaussian_filter1d(y_norm, sigma_pix)
+    bass_compare(obs_x, obs_y, sim.lambdas, convolved_flux, 6510, 6620)
+    return convolved_flux
