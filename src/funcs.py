@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import scipy.ndimage as nd
-
+import numpy as np
 
 def convert_wavelength_air2vacuum(wavelength_air):
     """
@@ -64,6 +64,7 @@ def bass_compare(obs_x, obs_y, sim_x, sim_y, start=6061, end=7061):
     # plt.vlines(6564.6, ymin=0, ymax=10000, color='red', label='H-alpha line')
     # plt.vlines(6867.4, ymin=0, ymax=10000, color='red', label='O2 B line')
     # plt.vlines(6282.6, ymin=0, ymax=10000, color='red', label='O2 A line')
+    plt.vlines(7775.2, ymin=0, ymax=10000, color='red', label='OI Triplet')
     plt.legend()
     plt.show()
 
@@ -125,3 +126,4 @@ def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
     convolved_flux = nd.gaussian_filter1d(y_norm, sigma_pix)
     bass_compare(obs_x, obs_y, sim.lambdas, convolved_flux, 6510, 6620)
     return convolved_flux
+
