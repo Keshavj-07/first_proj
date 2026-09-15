@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import scipy.ndimage as nd
 import numpy as np
+from astropy import units as u
+from stardis.base import run_stardis
+
 
 def convert_wavelength_air2vacuum(wavelength_air):
     """
@@ -127,3 +130,47 @@ def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
     bass_compare(obs_x, obs_y, sim.lambdas, convolved_flux, 6510, 6620)
     return convolved_flux
 
+
+def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.1, n_factor=10000, start=6061, end=7061):
+    """
+    Run STARdis simulations with and without spectral lines.
+
+    The two simulated spectra are divided to normalize the line spectrum,
+    scaled by ``n_factor``, and convolved with a Gaussian representing the
+    observed wavelength resolution.
+
+    Parameters
+    ----------
+    file_main : path-like
+        Stardis configuration file for the simulation.
+    file_nolines : path-like
+        Stardis configuration file for the continuum-only simulation.
+    obs_w_lambda : astropy.units.Quantity
+        Observed wavelength resolution, including its wavelength unit.
+    delta_lambda : float
+        Wavelength-grid spacing in Angstroms.
+    n_factor : float
+        Scaling factor applied to the normalized spectrum.
+    start : float
+        Starting wavelength of the simulation in Angstroms.
+    end : float
+        Ending wavelength of the simulation in Angstroms.
+
+    Returns
+    -------
+    tuple
+        The convolved normalized flux and the Stardis wavelength grid.
+    """
+    sim_delta_lambda = delta_lambda * u.Angstrom
+
+    tracing_wavelengths = np.mgrid[start:end:delta_lambda] * u.Angstrom
+    sim_full = run_stardis(file_main, tracing_wavelengths)
+    sim_nolines = run_stardis(file_nolines, tracing_wavelengths)
+
+    sim_normalized_flux = sim_full.spectrum_lambda/sim_nolines.spectrum_lambda * n_factor
+
+    obs_sigma_lambda = obs_w_lambda/2.355
+    obs_sigma_pix = obs_sigma_lambda/sim_delta_lambda
+    sim_con_flux = nd.gaussian_filter1d(sim_normalized_flux, obs_sigma_pix)
+
+    return sim_con_flux, sim_full.lambdas

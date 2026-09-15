@@ -3,7 +3,8 @@ atom_data: ../data/kurucz_cd23_chianti_H_He.h5
 n_threads: -99
 input_model:
     type: marcs
-    fname: ../data/sun.mod
+    fname: "../data/NE1-1 002.mod.gz"
+    gzipped: True
     final_atomic_number: 92
     composition_source: "asplund_2020"
 opacity:
@@ -25,5 +26,5 @@ opacity:
         include_molecules: False
 no_of_thetas: 20
 result_options:
-    return_plasma: True 
+    return_plasma: True
     return_model: True

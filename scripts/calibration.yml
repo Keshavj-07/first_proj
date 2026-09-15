@@ -1,5 +1,5 @@
 stardis_config_version: 1.0
-atom_data: ../data/vald_extract_solar.h5
+atom_data: ../data/kurucz_cd23_chianti_H_He.h5
 n_threads: -99
 input_model:
     type: marcs
@@ -20,10 +20,10 @@ opacity:
     line:
         disable: False
         broadening: [radiation, linear_stark, quadratic_stark, van_der_waals]
-        vald_linelist:
-            use_linelist: True
-            shortlist: True
-        include_molecules: True
+#        vald_linelist:
+#            use_linelist: True
+#            shortlist: True
+        include_molecules: False
 no_of_thetas: 20
 result_options:
     return_plasma: True 
