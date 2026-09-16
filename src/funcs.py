@@ -131,7 +131,7 @@ def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
     return convolved_flux
 
 
-def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.1, n_factor=10000, start=6061, end=7061):
+def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.01, n_factor=10000, start=6061, end=7061):
     """
     Run STARdis simulations with and without spectral lines.
 
