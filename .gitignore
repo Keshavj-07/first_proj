@@ -2,3 +2,4 @@
 stardis
 *.pyc
 __pycache__
+data/*.h5

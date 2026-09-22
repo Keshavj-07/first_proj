@@ -2,6 +2,19 @@ import matplotlib.pyplot as plt
 import scipy.ndimage as nd
 import numpy as np
 from astropy import units as u
+from tardis.plasma.base import BasePlasma
+
+if not getattr(BasePlasma, "_stardis_nlte_compat", False):
+    _base_plasma_init = BasePlasma.__init__
+
+    def _base_plasma_init_with_nlte_default(self, *args, **kwargs):
+        kwargs.setdefault("nlte_ionization_species", [])
+        kwargs.setdefault("nlte_excitation_species", [])
+        return _base_plasma_init(self, *args, **kwargs)
+
+    BasePlasma.__init__ = _base_plasma_init_with_nlte_default
+    BasePlasma._stardis_nlte_compat = True
+
 from stardis.base import run_stardis
 
 
@@ -131,7 +144,7 @@ def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
     return convolved_flux
 
 
-def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.01, n_factor=10000, start=6061, end=7061):
+def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.1, n_factor=10000, start=6061, end=7061):
     """
     Run STARdis simulations with and without spectral lines.
 
@@ -174,3 +187,13 @@ def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.01, n_facto
     sim_con_flux = nd.gaussian_filter1d(sim_normalized_flux, obs_sigma_pix)
 
     return sim_con_flux, sim_full.lambdas
+
+def vline(x,name):
+    plt.axvline(x=x, color='gray', linestyle='--')
+    plt.text(
+        x, 0.1, name, 
+        rotation=90, 
+        ha='center', 
+        va='center', 
+        transform=plt.gca().get_xaxis_transform()
+    )

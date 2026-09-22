@@ -5,8 +5,10 @@ input_model:
     type: marcs
     fname: "../data/NE1-1 001.mod.gz"
     gzipped: True
-    final_atomic_number: 92
+    final_atomic_number: 30
     composition_source: "asplund_2020"
+plasma:
+    nlte_ionization_species: []
 opacity:
     file:
         Hminus_bf: ../data/h_minus_cross_section_wbr.dat

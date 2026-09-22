@@ -3,10 +3,12 @@ atom_data: ../data/kurucz_cd23_chianti_H_He.h5
 n_threads: -99
 input_model:
     type: marcs
-    fname: "../data/NE1-1 001.mod.gz"
+    fname: "../data/s3000_g+1.0_m1.0_t02_st_z+0.00_a+0.00_c+0.00_n+0.00_o+0.00_r+0.00_s+0.00.mod.gz"
     gzipped: True
-    final_atomic_number: 92
+    final_atomic_number: 30
     composition_source: "asplund_2020"
+plasma:
+    nlte_ionization_species: []
 opacity:
     file:
         Hminus_bf: ../data/h_minus_cross_section_wbr.dat
