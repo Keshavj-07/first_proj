@@ -21,9 +21,9 @@ opacity:
     line:
         disable: True
         broadening: [radiation, linear_stark, quadratic_stark, van_der_waals]
-        vald_linelist:
-            use_linelist: False
-            shortlist: True
+#        vald_linelist:
+#            use_linelist: True
+#            shortlist: True
         include_molecules: False
 no_of_thetas: 20
 result_options:

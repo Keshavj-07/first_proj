@@ -3,3 +3,5 @@ stardis
 *.pyc
 __pycache__
 data/*.h5
+data/
+data/*.fits
