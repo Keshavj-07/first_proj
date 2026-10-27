@@ -6,7 +6,7 @@ input_model:
     fname: "../data/NE1-1 002.mod.gz"
     gzipped: True
     final_atomic_number: 30
-    composition_source: "asplund_2020"
+#   composition_source: "asplund_2020"
 plasma:
     nlte_ionization_species: []
 opacity:
