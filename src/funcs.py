@@ -147,7 +147,7 @@ def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
     return convolved_flux
 
 
-def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=2.13, n_factor=1, start=6061, end=7061):
+def simulation(file_main, obs_w_lambda, delta_lambda=2.13, n_factor=1, start=6061, end=7061, config = None):
     """
     Run STARdis simulations with and without spectral lines.
 
@@ -159,8 +159,6 @@ def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=2.13, n_facto
     ----------
     file_main : path-like
         Stardis configuration file for the simulation.
-    file_nolines : path-like
-        Stardis configuration file for the continuum-only simulation.
     obs_w_lambda : astropy.units.Quantity
         Observed wavelength resolution, including its wavelength unit.
     delta_lambda : float
@@ -180,8 +178,8 @@ def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=2.13, n_facto
     sim_delta_lambda = delta_lambda * u.Angstrom
 
     tracing_wavelengths = np.mgrid[start:end:delta_lambda] * u.Angstrom
-    sim_full = run_stardis(file_main, tracing_wavelengths)
-    sim_nolines = run_stardis(file_nolines, tracing_wavelengths)
+    sim_full = run_stardis(file_main, tracing_wavelengths, add_config_dict=config if config else None)
+    sim_nolines = run_stardis(file_main, tracing_wavelengths, add_config_dict = {**(config or {}), "opacity.line.disable": True})
 
     sim_normalized_flux = sim_full.spectrum_lambda/sim_nolines.spectrum_lambda * n_factor
 
@@ -228,7 +226,7 @@ def observed_pipeline(fname, mask_start, mask_end, doppler_shift):
     return rest_x, y_norm
 
 def obs_sim_plot(obs_x, obs_y, sim_x, sim_y, target_name, xlim=(22020, 22080)):
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(8, 5))
     plt.plot(obs_x, obs_y, label="Normalized Rest Spectrum", drawstyle="steps")
     plt.plot(sim_x, sim_y, label=f"Stardis {target_name}", drawstyle="steps")
     plt.title(f"Normalized Spectrum of {target_name} vs Stardis spectrum")

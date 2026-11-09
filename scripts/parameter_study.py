@@ -13,35 +13,43 @@ end_wavelength = 22100
 
 # Defines a basic list of regular simulation files
 regular_files = [
-    "para_yml/2800K_marcs.yml",
-    "para_yml/3000K_marcs.yml",
-    "para_yml/3200K_marcs.yml",
-    "para_yml/0_5m_marcs.yml",
-    "para_yml/1m_marcs.yml",
-    "para_yml/2m_marcs.yml",
-    "para_yml/minus1_MH_marcs.yml",
-    "para_yml/0_MH_marcs.yml",
-    "para_yml/1_MH_marcs.yml",
-    "para_yml/t1_marcs.yml",
-    "para_yml/t2_marcs.yml",
-    "para_yml/t5_marcs.yml",
+    "para_yml/2800K.yml",
+    "para_yml/3000K.yml",
+    "para_yml/3200K.yml",
+    "para_yml/0_5m.yml",
+    "para_yml/1m.yml",
+    "para_yml/2m.yml",
+    "para_yml/minus1_MH.yml",
+    "para_yml/0_MH.yml",
+    "para_yml/1_MH.yml",
+    "para_yml/t1.yml",
+    "para_yml/t2.yml",
+    "para_yml/t5.yml",
 ]
 
 # Defines other lists that use suffixes on the base list
-nolines_files = [f.replace("_marcs.yml", "_nolines_marcs.yml") for f in regular_files]
-asplund_files = [f.replace("_marcs.yml", "_asplund.yml") for f in regular_files]
-asplund_nolines_files = [f.replace("_asplund.yml", "_nolines_asplund.yml") for f in asplund_files]
-
 sim_dict = {}
-# Marcs files simulation
-for regular_file, nolines_file in zip(regular_files, nolines_files):
-    name = "sim_" + Path(regular_file).stem
-    sim_dict[name] = simulation(regular_file, nolines_file, obs_wavelength, start=start_wavelength, end=end_wavelength)
 
-# Asplund files simulation
-for regular_file, nolines_file in zip(asplund_files, asplund_nolines_files):
-    name = "sim_" + Path(regular_file).stem 
-    sim_dict[name] = simulation(regular_file, nolines_file, obs_wavelength, start=start_wavelength, end=end_wavelength)
+# Marcs then Asplund files simulation
+for regular_file in regular_files:
+    if Path(regular_file).stem == "minus1_MH":
+        name = "sim_minus1_MH_marcs"
+        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_Z": 0.00139})
+        name = "sim_minus1_MH_asplund"
+        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_source": "asplund_2020", "input_model.composition_Z": 0.00139})
+        continue
+    elif Path(regular_file).stem == "1_MH":
+        name = "sim_1_MH_marcs"
+        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_Z": 0.139})
+        name = "sim_1_MH_asplund"
+        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_source": "asplund_2020", "input_model.composition_Z": 0.139})
+        continue
+    name = "sim_" + Path(regular_file).stem + "_marcs"
+    sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength)
+    name = "sim_" + Path(regular_file).stem + "_asplund"
+    sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_source": "asplund_2020"})
+    
+
 fig, axes = plt.subplots(2, 2, figsize=(12, 10), sharex=True, sharey=True)
 
 plots_asplund = [
