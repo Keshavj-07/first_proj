@@ -3,52 +3,44 @@ warnings.filterwarnings("ignore")
 import matplotlib.pyplot as plt
 from astropy import units as u
 from src.funcs import (simulation)
-from stardis.base import run_stardis
-from pathlib import Path
 
 # Parameter-study simulations
 obs_wavelength = 4.08 * u.Angstrom
 start_wavelength = 22000
 end_wavelength = 22100
 
-# Defines a basic list of regular simulation files
-regular_files = [
-    "para_yml/2800K.yml",
-    "para_yml/3000K.yml",
-    "para_yml/3200K.yml",
-    "para_yml/0_5m.yml",
-    "para_yml/1m.yml",
-    "para_yml/2m.yml",
-    "para_yml/minus1_MH.yml",
-    "para_yml/0_MH.yml",
-    "para_yml/1_MH.yml",
-    "para_yml/t1.yml",
-    "para_yml/t2.yml",
-    "para_yml/t5.yml",
-]
-
 # Defines other lists that use suffixes on the base list
 sim_dict = {}
 
-# Marcs then Asplund files simulation
-for regular_file in regular_files:
-    if Path(regular_file).stem == "minus1_MH":
-        name = "sim_minus1_MH_marcs"
-        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_Z": 0.00139})
-        name = "sim_minus1_MH_asplund"
-        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_source": "asplund_2020", "input_model.composition_Z": 0.00139})
-        continue
-    elif Path(regular_file).stem == "1_MH":
-        name = "sim_1_MH_marcs"
-        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_Z": 0.139})
-        name = "sim_1_MH_asplund"
-        sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_source": "asplund_2020", "input_model.composition_Z": 0.139})
-        continue
-    name = "sim_" + Path(regular_file).stem + "_marcs"
-    sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength)
-    name = "sim_" + Path(regular_file).stem + "_asplund"
-    sim_dict[name] = simulation(regular_file, obs_wavelength, start=start_wavelength, end=end_wavelength, config={"input_model.composition_source": "asplund_2020"})
-    
+param_config = {
+    '2800K': {},
+    '3000K': {},
+    '3200K': {},
+    '0_5m': {},
+    '1m': {},
+    '2m': {},
+    'minus1_MH': {"input_model.composition_Z": 0.00139},
+    '0_MH': {},
+    '1_MH': {"input_model.composition_Z": 0.139},
+    't1': {},
+    't2': {},
+    't5': {},
+}
+
+abund_source_config = {
+    'marcs': {},
+    'asplund': {"input_model.composition_source": "asplund_2020"},
+}
+
+for param, param_config_dict in param_config.items():
+  for abund_source, abund_source_dict in abund_source_config.items():
+      yaml = f"para_yml/{param}.yml"
+      name = f"sim_{param}_{abund_source}"
+
+      # Combine the config modifications for specific simulations
+      config = abund_source_dict | param_config_dict
+
+      sim_dict[name] = simulation(yaml, obs_wavelength, start=start_wavelength, end=end_wavelength, config=config)
 
 fig, axes = plt.subplots(2, 2, figsize=(12, 10), sharex=True, sharey=True)
 
