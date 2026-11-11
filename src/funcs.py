@@ -147,7 +147,7 @@ def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
     return convolved_flux
 
 
-def simulation(file_main, obs_w_lambda, delta_lambda=2.13, n_factor=1, start=6061, end=7061, config = None):
+def simulation(file_main, obs_w_lambda, delta_lambda=2.13, n_factor=1, start=6061, end=7061, config = {}):
     """
     Run STARdis simulations with and without spectral lines.
 
@@ -178,8 +178,8 @@ def simulation(file_main, obs_w_lambda, delta_lambda=2.13, n_factor=1, start=606
     sim_delta_lambda = delta_lambda * u.Angstrom
 
     tracing_wavelengths = np.mgrid[start:end:delta_lambda] * u.Angstrom
-    sim_full = run_stardis(file_main, tracing_wavelengths, add_config_dict=config if config else None)
-    sim_nolines = run_stardis(file_main, tracing_wavelengths, add_config_dict = {**(config or {}), "opacity.line.disable": True})
+    sim_full = run_stardis(file_main, tracing_wavelengths, add_config_dict=config)
+    sim_nolines = run_stardis(file_main, tracing_wavelengths, add_config_dict = config | {"opacity.line.disable": True})
 
     sim_normalized_flux = sim_full.spectrum_lambda/sim_nolines.spectrum_lambda * n_factor
 
