@@ -2,6 +2,22 @@ import matplotlib.pyplot as plt
 import scipy.ndimage as nd
 import numpy as np
 from astropy import units as u
+from astropy.io import fits
+from tardis.plasma.base import BasePlasma
+from numpy.polynomial import Polynomial
+
+
+if not getattr(BasePlasma, "_stardis_nlte_compat", False):
+    _base_plasma_init = BasePlasma.__init__
+
+    def _base_plasma_init_with_nlte_default(self, *args, **kwargs):
+        kwargs.setdefault("nlte_ionization_species", [])
+        kwargs.setdefault("nlte_excitation_species", [])
+        return _base_plasma_init(self, *args, **kwargs)
+
+    BasePlasma.__init__ = _base_plasma_init_with_nlte_default
+    BasePlasma._stardis_nlte_compat = True
+
 from stardis.base import run_stardis
 
 
@@ -131,7 +147,7 @@ def show_plots(obs_x, obs_y, sim, sim_nolines, factor=9932, sigma_pix=42.5):
     return convolved_flux
 
 
-def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.1, n_factor=10000, start=6061, end=7061):
+def simulation(file_main, obs_w_lambda, delta_lambda=2.13, n_factor=1, start=6061, end=7061, config = {}):
     """
     Run STARdis simulations with and without spectral lines.
 
@@ -143,8 +159,6 @@ def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.1, n_factor
     ----------
     file_main : path-like
         Stardis configuration file for the simulation.
-    file_nolines : path-like
-        Stardis configuration file for the continuum-only simulation.
     obs_w_lambda : astropy.units.Quantity
         Observed wavelength resolution, including its wavelength unit.
     delta_lambda : float
@@ -164,8 +178,8 @@ def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.1, n_factor
     sim_delta_lambda = delta_lambda * u.Angstrom
 
     tracing_wavelengths = np.mgrid[start:end:delta_lambda] * u.Angstrom
-    sim_full = run_stardis(file_main, tracing_wavelengths)
-    sim_nolines = run_stardis(file_nolines, tracing_wavelengths)
+    sim_full = run_stardis(file_main, tracing_wavelengths, add_config_dict=config)
+    sim_nolines = run_stardis(file_main, tracing_wavelengths, add_config_dict = config | {"opacity.line.disable": True})
 
     sim_normalized_flux = sim_full.spectrum_lambda/sim_nolines.spectrum_lambda * n_factor
 
@@ -174,3 +188,59 @@ def simulation(file_main, file_nolines, obs_w_lambda, delta_lambda=0.1, n_factor
     sim_con_flux = nd.gaussian_filter1d(sim_normalized_flux, obs_sigma_pix)
 
     return sim_con_flux, sim_full.lambdas
+
+def vline(x,name):
+    plt.axvline(x=x, color='gray', linestyle='--')
+    plt.text(
+        x, 0.1, name, 
+        rotation=90, 
+        ha='center', 
+        va='center', 
+        transform=plt.gca().get_xaxis_transform()
+    )
+
+def observed_pipeline(fname, mask_start, mask_end, doppler_shift):
+    
+    #reading file
+    hdulist = fits.open(fname)
+    header = hdulist[0].header
+
+    #Converting pixels to wavelength
+    pixels = np.arange(1,header['NAXIS1']+1)
+    wavelength = (header['CRVAL1'] + (pixels - header['CRPIX1']) * header['CD1_1'])
+
+    # Masking the data to avoid faulty edges of the data
+    fit_mask = (wavelength >= mask_start) & (wavelength <= mask_end)
+    x = wavelength[fit_mask]
+    y = hdulist[0].data[fit_mask]
+
+    # 4th-Order Polynomial Fit
+    p_fit = Polynomial.fit(x, y, deg=4)
+    y_fit = p_fit(x)
+
+    y_norm = y / y_fit
+
+    #Doppler shift correction
+    rest_x = x / (1 + (doppler_shift/299792.458)) # c in km/s
+
+    return rest_x, y_norm
+
+def obs_sim_plot(obs_x, obs_y, sim_x, sim_y, target_name, xlim=(22020, 22080)):
+    plt.figure(figsize=(8, 5))
+    plt.plot(obs_x, obs_y, label="Normalized Rest Spectrum", drawstyle="steps")
+    plt.plot(sim_x, sim_y, label=f"Stardis {target_name}", drawstyle="steps")
+    plt.title(f"Normalized Spectrum of {target_name} vs Stardis spectrum")
+    plt.xlabel("Wavelength [Å]")
+    plt.ylabel("Normalized Flux")
+    plt.xlim(*xlim)
+    vline(22026, 'CN 1')
+    vline(22075.5, 'CN 1')
+    vline(22038, 'CN 0')
+    vline(22030, 'Sc')
+    vline(22058.9, 'Sc')
+    vline(22071, 'Sc')
+    vline(22069, 'Si')
+    vline(22079, 'Si')
+    vline(22062, 'Na')
+    plt.legend(loc='upper right')
+    plt.show()
